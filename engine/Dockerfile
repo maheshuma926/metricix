@@ -1,23 +1,21 @@
 # --- Stage 1: Build the JAR ---
-FROM eclipse-temurin:21-jdk-alpine AS builder
+FROM maven:3.9.11-eclipse-temurin-21-alpine AS builder
 WORKDIR /app
 
-# Copy gradle wrapper and source code
-COPY gradlew .
-COPY gradle gradle
-COPY build.gradle settings.gradle ./
-COPY src src
+# Copy pom first to maximize Docker layer caching for dependencies
+COPY pom.xml ./
+RUN mvn -B -q -DskipTests dependency:go-offline
 
-# Make the wrapper executable and build the application (skip tests for speed)
-RUN chmod +x ./gradlew
-RUN ./gradlew bootJar -x test
+# Copy source and package (skip tests for image build speed)
+COPY src src
+RUN mvn -B -q -DskipTests package
 
 # --- Stage 2: The Minimal Production Image ---
 FROM eclipse-temurin:21-jre-alpine
 WORKDIR /app
 
 # Copy ONLY the built JAR from the builder stage
-COPY --from=builder /app/build/libs/*.jar metricix.jar
+COPY --from=builder /app/target/*.jar metricix.jar
 
 # Expose the port Netty will run on
 EXPOSE 8080

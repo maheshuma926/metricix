@@ -2,9 +2,9 @@ package com.metricix.engine.service;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.r2dbc.postgresql.codec.Json;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.ReactiveStringRedisTemplate;
 import org.springframework.r2dbc.core.DatabaseClient;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -24,11 +24,17 @@ public class TelemetrySweeper {
     private final ReactiveStringRedisTemplate redisTemplate;
     private final DatabaseClient databaseClient;
     private final ObjectMapper objectMapper;
+    private final boolean postgresDialect;
 
-    public TelemetrySweeper(ReactiveStringRedisTemplate redisTemplate, DatabaseClient databaseClient, ObjectMapper objectMapper) {
+    public TelemetrySweeper(
+            ReactiveStringRedisTemplate redisTemplate,
+            DatabaseClient databaseClient,
+            ObjectMapper objectMapper,
+            @Value("${spring.r2dbc.url:}") String r2dbcUrl) {
         this.redisTemplate = redisTemplate;
         this.databaseClient = databaseClient;
         this.objectMapper = objectMapper;
+        this.postgresDialect = r2dbcUrl != null && r2dbcUrl.startsWith("r2dbc:postgresql:");
     }
 
     // Runs every 5 seconds
@@ -59,12 +65,15 @@ public class TelemetrySweeper {
                         try {
                             Map<String, Object> map = objectMapper.readValue((String) eventString, new TypeReference<>() {});
                             String payloadJson = objectMapper.writeValueAsString(map.get("payload"));
+                            String insertSql = postgresDialect
+                                    ? "INSERT INTO metricix_events (tenant_id, event_type, url, payload) VALUES (:tenant, :type, :url, CAST(:payload AS JSONB))"
+                                    : "INSERT INTO metricix_events (tenant_id, event_type, url, payload) VALUES (:tenant, :type, :url, CAST(:payload AS JSON))";
 
-                            return databaseClient.sql("INSERT INTO metricix_events (tenant_id, event_type, url, payload) VALUES (:tenant, :type, :url, :payload)")
+                            return databaseClient.sql(insertSql)
                                 .bind("tenant", map.get("tenant_id"))
                                 .bind("type", map.get("event_type"))
                                 .bind("url", map.get("url") != null ? map.get("url") : "")
-                                .bind("payload", Json.of(payloadJson))
+                                .bind("payload", payloadJson)
                                 .then();
                                 
                         } catch (Exception e) {

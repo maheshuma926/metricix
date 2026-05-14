@@ -70,6 +70,12 @@ public class TelemetryIngestionService {
                         } catch (Exception e) {
                             log.error("Payload parse error", e);
                         }
+                    } else if (payload instanceof String payloadJson) {
+                        try {
+                            formattedRow.put("payload", objectMapper.readValue(payloadJson, Map.class));
+                        } catch (Exception e) {
+                            log.error("Payload parse error", e);
+                        }
                     }
                     return formattedRow;
                 });

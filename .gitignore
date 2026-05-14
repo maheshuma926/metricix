@@ -1,6 +1,10 @@
 # --- Java & Gradle ---
 .gradle/
 build/
+target/
+.mvn/
+mvnw
+mvnw.cmd
 bin/
 out/
 .gradle-home/

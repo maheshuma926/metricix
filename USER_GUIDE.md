@@ -67,3 +67,7 @@ Here is a copy-pasteable example for sending a `button_click` event.
 ```bash
 curl -X POST https://api.mihirr.in/api/v1/track -H "Content-Type: application/json" -H "X-API-Key: mtx_pub_test_123" -d "{\"event_type\": \"terminal_test\", \"payload\": {\"message\": \"Hello from the command line!\", \"engineer\": \"Mihir\", \"status\": \"success\"}}"
 ```
+
+```bash
+curl -X POST https//localhost:8080/api/v1/track -H "Content-Type: application/json" -H "X-API-Key: mtx_pub_test_123" -d "{\"event_type\": \"terminal_test\", \"payload\": {\"message\": \"Hello from the command line!\", \"engineer\": \"Mihir\", \"status\": \"success\"}}"
+```

@@ -1,6 +1,10 @@
 HELP.md
 .gradle
 build/
+target/
+.mvn/
+mvnw
+mvnw.cmd
 !gradle/wrapper/gradle-wrapper.jar
 !**/src/main/**/build/
 !**/src/test/**/build/
