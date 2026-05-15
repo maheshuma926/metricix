@@ -1,0 +1,53 @@
+### ======================================
+### Base Variables
+### ======================================
+@host = http://localhost:8080
+@apiKey = mtx_pub_test123
+@invalidApiKey = invalid_key
+@contentType = application/json
+
+### ======================================
+### 1. Track Event (SUCCESS)
+### ======================================
+POST {{host}}/api/v1/track
+Content-Type: {{contentType}}
+X-API-Key: {{apiKey}}
+
+{
+  "event_type": "button_click",
+  "url": null,
+  "payload": {
+    "button_id": "signup_hero",
+    "path": "/home"
+  }
+}
+
+
+### ======================================
+### 2. Get Events (SUCCESS)
+### ======================================
+GET {{host}}/api/v1/events?limit=10
+Accept: {{contentType}}
+X-API-Key: {{apiKey}}
+
+
+
+### ======================================
+### 3. Get Events (DEFAULT LIMIT)
+### ======================================
+GET {{host}}/api/v1/events
+Accept: {{contentType}}
+X-API-Key: {{apiKey}}
+
+### ======================================
+### 4. Get Tenants (SUCCESS)
+### ======================================
+GET {{host}}/api/v1/tenants
+Accept: {{contentType}}
+
+### ======================================
+### 5. Purge Data (SUCCESS)
+### ======================================
+DELETE {{host}}/api/v1/purge
+Accept: {{contentType}}
+X-API-Key: {{apiKey}}

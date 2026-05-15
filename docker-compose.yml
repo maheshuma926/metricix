@@ -7,7 +7,7 @@ services:
     ports:
       - "6379:6379"
     healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
+      test: [ "CMD", "redis-cli", "ping" ]
       interval: 5s
       timeout: 3s
       retries: 5
@@ -26,14 +26,14 @@ services:
     volumes:
       - metricix_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U metricix_admin -d metricix_db"]
+      test: [ "CMD-SHELL", "pg_isready -U metricix_admin -d metricix_db" ]
       interval: 5s
       timeout: 3s
       retries: 5
 
   # 3. The Spring WebFlux Engine
   api:
-    build: 
+    build:
       context: ./engine
       dockerfile: Dockerfile
     container_name: metricix-api

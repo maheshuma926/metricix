@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.metricix.engine.dto.TelemetryEventRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.annotation.Profile;
 import org.springframework.data.redis.core.ReactiveStringRedisTemplate;
 import org.springframework.r2dbc.core.DatabaseClient;
 import org.springframework.stereotype.Service;
@@ -15,6 +16,7 @@ import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
 
+@Profile("reactive")
 @Service
 public class TelemetryIngestionService {
 

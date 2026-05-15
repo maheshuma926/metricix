@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Profile;
 import org.springframework.data.redis.core.ReactiveStringRedisTemplate;
 import org.springframework.r2dbc.core.DatabaseClient;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -14,6 +15,7 @@ import reactor.core.publisher.Mono;
 
 import java.util.Map;
 
+@Profile("reactive")
 @Service
 public class TelemetrySweeper {
 
@@ -45,58 +47,61 @@ public class TelemetrySweeper {
 
         // 2. Check if the queue actually exists before trying to rename it
         redisTemplate.hasKey(REDIS_QUEUE_KEY)
-            .flatMap(hasKey -> {
-                if (!Boolean.TRUE.equals(hasKey)) {
-                    return Mono.empty(); // Queue is empty, go back to sleep
-                }
-                // Queue has data! Rename it so the API can keep taking new events safely
-                return redisTemplate.rename(REDIS_QUEUE_KEY, PROCESSING_QUEUE_KEY)
-                        .thenMany(redisTemplate.opsForList().range(PROCESSING_QUEUE_KEY, 0, -1))
-                        .collectList();
-            })
-            .flatMap(events -> {
-                if (events == null || events.isEmpty()) return Mono.empty();
-                
-                log.info("🧹 Sweeper found {} events. Moving to Postgres...", events.size());
+                .flatMap(hasKey -> {
+                    if (!Boolean.TRUE.equals(hasKey)) {
+                        return Mono.empty(); // Queue is empty, go back to sleep
+                    }
+                    // Queue has data! Rename it so the API can keep taking new events safely
+                    return redisTemplate.rename(REDIS_QUEUE_KEY, PROCESSING_QUEUE_KEY)
+                            .thenMany(redisTemplate.opsForList().range(PROCESSING_QUEUE_KEY, 0, -1))
+                            .collectList();
+                })
+                .flatMap(events -> {
+                    if (events == null || events.isEmpty()) return Mono.empty();
 
-                // 3. Loop through the events and insert them into PostgreSQL
-                return Flux.fromIterable(events)
-                    .flatMap(eventString -> {
-                        try {
-                            Map<String, Object> map = objectMapper.readValue((String) eventString, new TypeReference<>() {});
-                            String payloadJson = objectMapper.writeValueAsString(map.get("payload"));
-                            String insertSql = postgresDialect
-                                    ? "INSERT INTO metricix_events (tenant_id, event_type, url, payload) VALUES (:tenant, :type, :url, CAST(:payload AS JSONB))"
-                                    : "INSERT INTO metricix_events (tenant_id, event_type, url, payload) VALUES (:tenant, :type, :url, CAST(:payload AS JSON))";
+                    log.info("🧹 Sweeper found {} events. Moving to Postgres...", events.size());
 
-                            return databaseClient.sql(insertSql)
-                                .bind("tenant", map.get("tenant_id"))
-                                .bind("type", map.get("event_type"))
-                                .bind("url", map.get("url") != null ? map.get("url") : "")
-                                .bind("payload", payloadJson)
-                                .then();
-                                
-                        } catch (Exception e) {
-                            log.error("Failed to parse or save event", e);
-                            return Mono.empty();
-                        }
-                    })
-                    // 4. Delete the processing queue once saved
-                    .then(redisTemplate.delete(PROCESSING_QUEUE_KEY)); 
-            })
-            .subscribe(
-                success -> {}, // Fire and forget on success
-                error -> log.error("Sweeper encountered a critical error!", error) // Catch any silent crashes
-            );
+                    // 3. Loop through the events and insert them into PostgreSQL
+                    return Flux.fromIterable(events)
+                            .flatMap(eventString -> {
+                                try {
+                                    Map<String, Object> map = objectMapper.readValue(eventString, new TypeReference<>() {
+                                    });
+                                    String payloadJson = objectMapper.writeValueAsString(map.get("payload"));
+                                    String insertSql = postgresDialect
+                                            ? "INSERT INTO metricix_events (tenant_id, event_type, url, payload) VALUES (:tenant, :type, :url, CAST(:payload AS JSONB))"
+                                            : "INSERT INTO metricix_events (tenant_id, event_type, url, payload) VALUES (:tenant, :type, :url, CAST(:payload AS JSON))";
+
+                                    return databaseClient.sql(insertSql)
+                                            .bind("tenant", map.get("tenant_id"))
+                                            .bind("type", map.get("event_type"))
+                                            .bind("url", map.get("url") != null ? map.get("url") : "")
+                                            .bind("payload", payloadJson)
+                                            .then();
+
+                                } catch (Exception e) {
+                                    log.error("Failed to parse or save event", e);
+                                    return Mono.empty();
+                                }
+                            })
+                            // 4. Delete the processing queue once saved
+                            .then(redisTemplate.delete(PROCESSING_QUEUE_KEY));
+                })
+                .subscribe(
+                        success -> {
+                        }, // Fire and forget on success
+                        error -> log.error("Sweeper encountered a critical error!", error) // Catch any silent crashes
+                );
     }
+
     // --- 3. THE RETRIEVAL API (Pulling from Postgres) ---
     public Flux<Map<String, Object>> getRecentEvents(String tenantId, int limit) {
         log.info("Fetching up to {} events for tenant: {}", limit, tenantId);
-        
+
         return databaseClient.sql("SELECT * FROM metricix_events WHERE tenant_id = :tenant ORDER BY created_at DESC LIMIT :limit")
                 .bind("tenant", tenantId)
                 .bind("limit", limit)
                 .fetch()
-                .all(); 
+                .all();
     }
 }

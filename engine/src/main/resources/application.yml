@@ -1,20 +1,71 @@
+# ======================================
+# Default / Common Config
+# ======================================
 spring:
   application:
     name: metricix
+
+  profiles:
+    active: blocking   # You can change to "blocking" / "reactive" when needed
 
   data:
     redis:
       host: localhost
       port: 6379
-    lettuce:
-      pool:
+
+logging:
+  level:
+    org.springframework: INFO
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: metrics,health,prometheus
+
+  metrics:
+    distribution:
+      percentiles-histogram:
+        http.server.requests: true
+
+
+  prometheus:
+    metrics:
+      export:
         enabled: true
-        max-active: 100
+
+
+
+# ======================================
+# REACTIVE PROFILE
+# ======================================
+---
+spring:
+  config:
+    activate:
+      on-profile: reactive
+
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration
+      - org.springframework.boot.autoconfigure.orm.jpa.HibernateJpaAutoConfiguration
+
+
+  app:
+    telemetry:
+      mode: reactive
 
   r2dbc:
     url: r2dbc:postgresql://localhost:5433/metricix_db
     username: metricix_admin
     password: super_secret_password_123
+
+  data:
+    redis:
+      lettuce:
+        pool:
+          enabled: true
+          max-active: 100
 
   flyway:
     url: jdbc:postgresql://localhost:5433/metricix_db
@@ -22,8 +73,37 @@ spring:
     password: super_secret_password_123
     enabled: true
 
-logging:
-    level:
-        root: INFO
-        org.springframework.web: DEBUG
-        com.metricix: DEBUG
+
+# ======================================
+# BLOCKING PROFILE (JPA)
+# ======================================
+---
+spring:
+  config:
+    activate:
+      on-profile: blocking
+
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.autoconfigure.r2dbc.R2dbcAutoConfiguration
+
+
+  app:
+    telemetry:
+      mode: blocking
+
+  datasource:
+    url: jdbc:postgresql://localhost:5433/metricix_db
+    username: metricix_admin
+    password: super_secret_password_123
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+
+  flyway:
+    url: jdbc:postgresql://localhost:5433/metricix_db
+    user: metricix_admin
+    password: super_secret_password_123
+    enabled: true

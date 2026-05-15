@@ -1,6 +1,7 @@
 <div align="center">
 
-# ⚡ Metricix 
+# ⚡ Metricix
+
 ### (pronounced: meh-TRIK-iks)
 
 🔴 **Live Portal:** [https://metricix.mihirr.in](https://metricix.mihirr.in)
@@ -30,21 +31,32 @@
 
 ## Overview
 
-Metricix is a **self-hosted, non-blocking telemetry ingestion and analytics engine** built for engineering teams that need full data ownership, predictable latency, and high throughput — without the cost or lock-in of third-party analytics platforms.
+Metricix is a **self-hosted, non-blocking telemetry ingestion and analytics engine** built for engineering teams that
+need full data ownership, predictable latency, and high throughput — without the cost or lock-in of third-party
+analytics platforms.
 
-Built natively on **Spring WebFlux (Project Reactor)**, every operation in the ingestion path is fully asynchronous. Incoming events are immediately buffered in **Redis** and flushed to **PostgreSQL** in bulk by a background worker — decoupling API response time from database write performance entirely. The system now includes a real-time dashboard to visualize event data as it arrives.
+Built natively on **Spring WebFlux (Project Reactor)**, every operation in the ingestion path is fully asynchronous.
+Incoming events are immediately buffered in **Redis** and flushed to **PostgreSQL** in bulk by a background worker —
+decoupling API response time from database write performance entirely. The system now includes a real-time dashboard to
+visualize event data as it arrives.
 
 ---
 
 ## ☁️ Cloud Architecture
 
-The Metricix engine is deployed in a decoupled, scalable cloud architecture for production-grade reliability and performance.
+The Metricix engine is deployed in a decoupled, scalable cloud architecture for production-grade reliability and
+performance.
 
-- **Backend Services (AWS EC2):** The core backend services (Spring Boot API, PostgreSQL, Redis) are containerized using Docker and run on a dedicated AWS EC2 instance.
-- **Secure API Gateway (Nginx):** An Nginx reverse proxy is deployed on the same EC2 instance, serving as the public-facing gateway. It terminates SSL/TLS, provides HTTPS for the API endpoint (`api.mihirr.in`), and forwards traffic to the Spring Boot application.
-- **Frontend Hosting (Vercel):** The frontend dashboard is a decoupled static application hosted on Vercel's global Edge Network. This ensures fast load times for users worldwide and separates the UI from the backend infrastructure.
+- **Backend Services (AWS EC2):** The core backend services (Spring Boot API, PostgreSQL, Redis) are containerized using
+  Docker and run on a dedicated AWS EC2 instance.
+- **Secure API Gateway (Nginx):** An Nginx reverse proxy is deployed on the same EC2 instance, serving as the
+  public-facing gateway. It terminates SSL/TLS, provides HTTPS for the API endpoint (`api.mihirr.in`), and forwards
+  traffic to the Spring Boot application.
+- **Frontend Hosting (Vercel):** The frontend dashboard is a decoupled static application hosted on Vercel's global Edge
+  Network. This ensures fast load times for users worldwide and separates the UI from the backend infrastructure.
 
-This architecture ensures that the backend is securely isolated, while the frontend is globally distributed for optimal user experience.
+This architecture ensures that the backend is securely isolated, while the frontend is globally distributed for optimal
+user experience.
 
 ---
 
@@ -55,51 +67,72 @@ This architecture ensures that the backend is securely isolated, while the front
 - **Immediate `202 Accepted`** — API responds before any database interaction occurs on ingestion.
 - **Redis-backed buffer** — Events are atomically queued and drained; no data loss on DB failures.
 - **Bulk PostgreSQL writes** — A single `INSERT ... VALUES (), (), ()` per batch cycle, not N individual inserts.
-- **Dead Letter Queue (DLQ) & Archival** — Failed batches are preserved in `metricix_dlq`. Works alongside the soft-delete archival system to ensure no data is ever lost.
+- **Dead Letter Queue (DLQ) & Archival** — Failed batches are preserved in `metricix_dlq`. Works alongside the
+  soft-delete archival system to ensure no data is ever lost.
 - **High-Throughput Symmetric Auth** — Per-key validation with `mtx_pub_` prefix enforcement.
-- **Multi-tenant Discovery** — An API endpoint (`/api/v1/tenants`) to automatically discover active tenants for UI population.
+- **Multi-tenant Discovery** — An API endpoint (`/api/v1/tenants`) to automatically discover active tenants for UI
+  population.
 - **Per-key Rate Limiting** — Token bucket algorithm, Redis-backed, works correctly across multiple instances.
 - **Stateless & horizontally scalable** — Deploy N instances behind a load balancer with no config changes.
 - **Prometheus metrics** — Custom ingestion counters and batch size histograms out of the box.
 - **Structured JSON logging** — Compatible with Datadog, ELK, and Grafana Loki.
 - **Flyway schema management** — Schema is provisioned automatically on startup; no manual DDL.
+
 ---
+
 ## 🖥️ User Interface (Frontend Portals)
 
-Metricix includes a premium, Tailwind-styled frontend suite consisting of two dedicated portals, featuring persistent Light/Dark mode and responsive design.
+Metricix includes a premium, Tailwind-styled frontend suite consisting of two dedicated portals, featuring persistent
+Light/Dark mode and responsive design.
 
 ### 1. The Developer Emitter (`index.html`)
+
 A robust testing portal designed to simulate real-world traffic patterns without needing Postman or external scripts.
+
 * **Traffic Simulation:** Queue up to 5 different event types with specific quantities.
 * **Execution Modes:** Fire events sequentially or shuffle them into randomized chaotic traffic.
 * **Smart Inputs:** Dropdown presets for API keys and event types with seamless custom input fallbacks.
 * **Live Console:** A built-in stylized terminal logging request/response cycles in real-time.
 
 ### 2. The Analytics Hub (`dashboard.html`)
+
 An administrative dashboard for visualizing telemetry streams dynamically.
+
 * **Automated Discovery:** Automatically fetches available tenants and binds required API keys.
 * **Interactive Visualization:** Powered by Chart.js. Features Bar Charts (Event Volume) and Line Charts (Time Series).
-* **Deep Data Exploration:** Supports mouse-wheel zooming, click-and-drag panning, and dynamic time-binning (Per Hour vs. Per Day).
+* **Deep Data Exploration:** Supports mouse-wheel zooming, click-and-drag panning, and dynamic time-binning (Per Hour
+  vs. Per Day).
 * **The Danger Zone:** UI-driven soft-deletion with confirmation modals for safe tenant purging.
+
 ---
+
 ## ⚡ Performance Benchmarks
 
-Metricix is built for extreme throughput and low latency. To validate our Non-Functional Requirements (NFRs), the engine was stress-tested using **k6**.
+Metricix is built for extreme throughput and low latency. To validate our Non-Functional Requirements (NFRs), the engine
+was stress-tested using **k6**.
 
 ### The Benchmark (Sustained Load Test)
-To accurately measure the application's true processing latency without being bottlenecked by the local operating system's TCP network queue, we utilize an **Open Model (Constant Arrival Rate)** test. 
 
-Instead of spamming the server as fast as possible (which tests network bridge limits, capping around ~2,500 RPS locally with a queued P95 of ~218ms), the Constant Arrival Rate model guarantees exactly 1,000 requests are dispatched every second. 
+To accurately measure the application's true processing latency without being bottlenecked by the local operating
+system's TCP network queue, we utilize an **Open Model (Constant Arrival Rate)** test.
+
+Instead of spamming the server as fast as possible (which tests network bridge limits, capping around ~2,500 RPS locally
+with a queued P95 of ~218ms), the Constant Arrival Rate model guarantees exactly 1,000 requests are dispatched every
+second.
 
 **Results (Local Windows WSL2/Docker Environment):**
+
 * **Target Load:** 1,000 Requests Per Second (RPS)
 * **Duration:** 60 seconds
 * **Events Processed:** 59,985
 * **Failure Rate:** 0.00%
 * **P95 Latency:** **5.62 ms**
 
-**Conclusion:** Under a sustained, production-grade load of 1,000 RPS, the Spring WebFlux + Redis Lettuce architecture successfully validates, decorates, and buffers telemetry payloads in under 6 milliseconds.
+**Conclusion:
+** Under a sustained, production-grade load of 1,000 RPS, the Spring WebFlux + Redis Lettuce architecture successfully
+validates, decorates, and buffers telemetry payloads in under 6 milliseconds.
 ---
+
 ## Architecture
 
 ### Pipeline Flow
@@ -159,19 +192,19 @@ Instead of spamming the server as fast as possible (which tests network bridge l
 
 ### Tech Stack at a Glance
 
-| Layer | Technology | Notes |
-|---|---|---|
-| Runtime | Java 24 | Virtual threads available |
-| Framework | Spring Boot 3.2+ | WebFlux, Actuator, Scheduling |
-| Reactive Web | Spring WebFlux (Project Reactor) | Netty server, non-blocking throughout |
-| Cache / Queue | Redis 7+ | Event buffer, rate limit state, DLQ |
-| Redis Client | Lettuce | Reactive driver via `spring-boot-starter-data-redis-reactive` |
-| Database | PostgreSQL 16+ | Persistent event store |
-| DB Driver | R2DBC (`r2dbc-postgresql`) | Fully non-blocking SQL |
-| Schema Migrations | Flyway | Auto-applied on startup |
-| Logging | SLF4J + Logback | Structured JSON output |
-| Metrics | Micrometer + Prometheus | Exposed at `/actuator/prometheus` |
-| Containerization | Docker (multi-stage) | JRE Alpine or Distroless runtime image |
+| Layer             | Technology                       | Notes                                                         |
+|-------------------|----------------------------------|---------------------------------------------------------------|
+| Runtime           | Java 24                          | Virtual threads available                                     |
+| Framework         | Spring Boot 3.2+                 | WebFlux, Actuator, Scheduling                                 |
+| Reactive Web      | Spring WebFlux (Project Reactor) | Netty server, non-blocking throughout                         |
+| Cache / Queue     | Redis 7+                         | Event buffer, rate limit state, DLQ                           |
+| Redis Client      | Lettuce                          | Reactive driver via `spring-boot-starter-data-redis-reactive` |
+| Database          | PostgreSQL 16+                   | Persistent event store                                        |
+| DB Driver         | R2DBC (`r2dbc-postgresql`)       | Fully non-blocking SQL                                        |
+| Schema Migrations | Flyway                           | Auto-applied on startup                                       |
+| Logging           | SLF4J + Logback                  | Structured JSON output                                        |
+| Metrics           | Micrometer + Prometheus          | Exposed at `/actuator/prometheus`                             |
+| Containerization  | Docker (multi-stage)             | JRE Alpine or Distroless runtime image                        |
 
 ---
 
@@ -179,29 +212,29 @@ Instead of spamming the server as fast as possible (which tests network bridge l
 
 ### Functional Requirements
 
-| # | Requirement | Detail |
-|---|---|---|
-| FR-1 | Ingestion endpoint | `POST /api/v1/track` accepts `event_type` (required), `payload` (required), `url` (optional) |
-| FR-2 | Immediate acknowledgement | Returns `202 Accepted` after Redis `RPUSH`; never waits for PostgreSQL |
-| FR-3 | Data decoration | Server appends `received_at` (UTC timestamp) and `client_ip` before queuing |
-| FR-4 | API Key auth | `X-API-Key` header required; must match `mtx_pub_` prefix; invalid keys → `401` |
-| FR-5 | Atomic batch drain | Sweeper uses `RENAME` pattern to atomically swap queue; prevents race conditions |
-| FR-6 | Bulk DB insert | Entire batch written in a single SQL statement via R2DBC |
-| FR-7 | Dead Letter Queue | DB failures push batch to `metricix_dlq`; no event is ever silently discarded |
-| FR-8 | Rate limiting | Token bucket per API key, Redis-backed; exceeding threshold → `429` |
+| #    | Requirement               | Detail                                                                                       |
+|------|---------------------------|----------------------------------------------------------------------------------------------|
+| FR-1 | Ingestion endpoint        | `POST /api/v1/track` accepts `event_type` (required), `payload` (required), `url` (optional) |
+| FR-2 | Immediate acknowledgement | Returns `202 Accepted` after Redis `RPUSH`; never waits for PostgreSQL                       |
+| FR-3 | Data decoration           | Server appends `received_at` (UTC timestamp) and `client_ip` before queuing                  |
+| FR-4 | API Key auth              | `X-API-Key` header required; must match `mtx_pub_` prefix; invalid keys → `401`              |
+| FR-5 | Atomic batch drain        | Sweeper uses `RENAME` pattern to atomically swap queue; prevents race conditions             |
+| FR-6 | Bulk DB insert            | Entire batch written in a single SQL statement via R2DBC                                     |
+| FR-7 | Dead Letter Queue         | DB failures push batch to `metricix_dlq`; no event is ever silently discarded                |
+| FR-8 | Rate limiting             | Token bucket per API key, Redis-backed; exceeding threshold → `429`                          |
 
 ### Non-Functional Requirements
 
-| # | Requirement | Target |
-|---|---|---|
-| NFR-1 | P95 Latency | **< 15ms** server-side for `POST /api/v1/track` |
-| NFR-2 | Throughput | **> 1,000 req/sec** sustained on 1 vCPU / 1 GB RAM |
-| NFR-3 | Stateless design | Zero local JVM state; all shared state lives in Redis |
+| #     | Requirement        | Target                                                     |
+|-------|--------------------|------------------------------------------------------------|
+| NFR-1 | P95 Latency        | **< 15ms** server-side for `POST /api/v1/track`            |
+| NFR-2 | Throughput         | **> 1,000 req/sec** sustained on 1 vCPU / 1 GB RAM         |
+| NFR-3 | Stateless design   | Zero local JVM state; all shared state lives in Redis      |
 | NFR-4 | Horizontal scaling | N instances behind load balancer, no coordination required |
-| NFR-5 | Structured logging | JSON logs compatible with Datadog, ELK, Grafana Loki |
-| NFR-6 | Observability | Prometheus endpoint exposing custom ingestion metrics |
-| NFR-7 | Containerization | Multi-stage Docker image, final size < 250 MB |
-| NFR-8 | Schema management | Flyway migrations, auto-applied; no manual DDL permitted |
+| NFR-5 | Structured logging | JSON logs compatible with Datadog, ELK, Grafana Loki       |
+| NFR-6 | Observability      | Prometheus endpoint exposing custom ingestion metrics      |
+| NFR-7 | Containerization   | Multi-stage Docker image, final size < 250 MB              |
+| NFR-8 | Schema management  | Flyway migrations, auto-applied; no manual DDL permitted   |
 
 ---
 
@@ -252,19 +285,19 @@ Content-Type: application/json
 
 **Request Body Schema**
 
-| Field | Type | Required | Description |
-|---|---|---|---|
-| `event_type` | `string` | ✅ | Event identifier (e.g. `page_view`, `checkout_click`) |
-| `payload` | `object` | ✅ | Arbitrary JSON data |
-| `url` | `string` | ❌ | Origin URL of the event |
+| Field        | Type     | Required | Description                                           |
+|--------------|----------|----------|-------------------------------------------------------|
+| `event_type` | `string` | ✅        | Event identifier (e.g. `page_view`, `checkout_click`) |
+| `payload`    | `object` | ✅        | Arbitrary JSON data                                   |
+| `url`        | `string` | ❌        | Origin URL of the event                               |
 
 **Response Reference**
 
-| Status | Condition | Body |
-|---|---|---|
-| `202 Accepted` | Event buffered successfully | `{ "status": "buffered", "timestamp": "…" }` |
-| `400 Bad Request` | Missing required fields | `{ "error": "validation_failed", "message": "…" }` |
-| `401 Unauthorized` | Missing or invalid API key | `{ "error": "unauthorized", "message": "…" }` |
+| Status                  | Condition                   | Body                                                 |
+|-------------------------|-----------------------------|------------------------------------------------------|
+| `202 Accepted`          | Event buffered successfully | `{ "status": "buffered", "timestamp": "…" }`         |
+| `400 Bad Request`       | Missing required fields     | `{ "error": "validation_failed", "message": "…" }`   |
+| `401 Unauthorized`      | Missing or invalid API key  | `{ "error": "unauthorized", "message": "…" }`        |
 | `429 Too Many Requests` | Rate limit exceeded for key | `{ "error": "rate_limit_exceeded", "message": "…" }` |
 
 **Success Response**
@@ -296,21 +329,23 @@ curl -s -X POST https://api.mihirr.in/api/v1/track \
 
 ## ☁️ Deployment: Single-Node AWS EC2
 
-This guide deploys the full Metricix stack (API + Redis + PostgreSQL) on a single EC2 instance using Docker Compose. Suitable for development, staging, and low-to-medium production workloads.
+This guide deploys the full Metricix stack (API + Redis + PostgreSQL) on a single EC2 instance using Docker Compose.
+Suitable for development, staging, and low-to-medium production workloads.
 
 ### Step 1 — Provision EC2 Instance
 
 Launch an EC2 instance with the following configuration:
 
-| Setting | Value |
-|---|---|
-| AMI | Ubuntu 24.04 LTS (`ubuntu-noble-24.04-amd64-server`) |
-| Instance Type | `t3.micro` (dev/staging) or `t3.small` (production) |
-| Storage | 20 GB gp3 EBS minimum |
-| Security Group — Inbound | Port `22` (SSH) from your IP; Port `80` (HTTP) and `443` (HTTPS) from `0.0.0.0/0` |
-| Security Group — Outbound | All traffic |
+| Setting                   | Value                                                                             |
+|---------------------------|-----------------------------------------------------------------------------------|
+| AMI                       | Ubuntu 24.04 LTS (`ubuntu-noble-24.04-amd64-server`)                              |
+| Instance Type             | `t3.micro` (dev/staging) or `t3.small` (production)                               |
+| Storage                   | 20 GB gp3 EBS minimum                                                             |
+| Security Group — Inbound  | Port `22` (SSH) from your IP; Port `80` (HTTP) and `443` (HTTPS) from `0.0.0.0/0` |
+| Security Group — Outbound | All traffic                                                                       |
 
-> **Note:** For production, restrict port `8080` to your load balancer or VPC CIDR rather than `0.0.0.0/0`. Never expose ports `5432` (PostgreSQL) or `6379` (Redis) to the public internet.
+> **Note:** For production, restrict port `8080` to your load balancer or VPC CIDR rather than `0.0.0.0/0`. Never expose
+> ports `5432` (PostgreSQL) or `6379` (Redis) to the public internet.
 
 ---
 
@@ -369,7 +404,8 @@ RATE_LIMIT_RPS=200
 EOF
 ```
 
-> ⚠️ **Security:** Do not commit `.env` to version control. For production, use AWS Secrets Manager or SSM Parameter Store and inject values at runtime.
+> ⚠️ **Security:** Do not commit `.env` to version control. For production, use AWS Secrets Manager or SSM Parameter
+> Store and inject values at runtime.
 
 ---
 
@@ -477,6 +513,7 @@ curl -s -X POST https://api.mihirr.in/api/v1/track \
 ```
 
 Expected health response:
+
 ```json
 { "status": "UP" }
 ```
@@ -514,17 +551,17 @@ docker compose logs -f metricix-api
 
 All application settings are controlled via environment variables. No application config files need to be edited.
 
-| Variable | Default | Description |
-|---|---|---|
-| `BATCH_INTERVAL_MS` | `5000` | Sweeper flush interval in milliseconds |
-| `RATE_LIMIT_RPS` | `200` | Max requests per second per API key |
-| `REDIS_QUEUE_KEY` | `metricix_events_queue` | Redis list key for the active event buffer |
-| `SPRING_R2DBC_URL` | — | PostgreSQL R2DBC connection string |
-| `SPRING_R2DBC_USERNAME` | — | PostgreSQL username |
-| `SPRING_R2DBC_PASSWORD` | — | PostgreSQL password |
-| `SPRING_DATA_REDIS_HOST` | `localhost` | Redis hostname |
-| `SPRING_DATA_REDIS_PORT` | `6379` | Redis port |
-| `SERVER_PORT` | `8080` | HTTP server port |
+| Variable                 | Default                 | Description                                |
+|--------------------------|-------------------------|--------------------------------------------|
+| `BATCH_INTERVAL_MS`      | `5000`                  | Sweeper flush interval in milliseconds     |
+| `RATE_LIMIT_RPS`         | `200`                   | Max requests per second per API key        |
+| `REDIS_QUEUE_KEY`        | `metricix_events_queue` | Redis list key for the active event buffer |
+| `SPRING_R2DBC_URL`       | —                       | PostgreSQL R2DBC connection string         |
+| `SPRING_R2DBC_USERNAME`  | —                       | PostgreSQL username                        |
+| `SPRING_R2DBC_PASSWORD`  | —                       | PostgreSQL password                        |
+| `SPRING_DATA_REDIS_HOST` | `localhost`             | Redis hostname                             |
+| `SPRING_DATA_REDIS_PORT` | `6379`                  | Redis port                                 |
+| `SERVER_PORT`            | `8080`                  | HTTP server port                           |
 
 ---
 
@@ -532,19 +569,19 @@ All application settings are controlled via environment variables. No applicatio
 
 ### Endpoints
 
-| Endpoint | Method | Description |
-|---|---|---|
-| `/actuator/health` | `GET` | Liveness and readiness status |
-| `/actuator/prometheus` | `GET` | Prometheus metrics scrape endpoint |
+| Endpoint               | Method | Description                        |
+|------------------------|--------|------------------------------------|
+| `/actuator/health`     | `GET`  | Liveness and readiness status      |
+| `/actuator/prometheus` | `GET`  | Prometheus metrics scrape endpoint |
 
 ### Custom Metrics
 
-| Metric | Type | Description |
-|---|---|---|
-| `metricix_events_ingested_total` | Counter | Total events pushed to the Redis buffer |
-| `metricix_batch_size_written` | Histogram | Distribution of records per DB flush cycle |
-| `metricix_dlq_events_total` | Counter | Total events routed to the Dead Letter Queue |
-| `webflux_requests_active` | Gauge | Currently in-flight WebFlux requests |
+| Metric                           | Type      | Description                                  |
+|----------------------------------|-----------|----------------------------------------------|
+| `metricix_events_ingested_total` | Counter   | Total events pushed to the Redis buffer      |
+| `metricix_batch_size_written`    | Histogram | Distribution of records per DB flush cycle   |
+| `metricix_dlq_events_total`      | Counter   | Total events routed to the Dead Letter Queue |
+| `webflux_requests_active`        | Gauge     | Currently in-flight WebFlux requests         |
 
 ### Structured Logging
 
@@ -558,7 +595,8 @@ All logs are emitted as JSON via SLF4J/Logback. Compatible with:
 
 ## 🗃 Dead Letter Queue
 
-Failed database batches are never dropped. They are preserved in the `metricix_dlq` Redis list for inspection and replay.
+Failed database batches are never dropped. They are preserved in the `metricix_dlq` Redis list for inspection and
+replay.
 
 ```bash
 # Inspect DLQ contents
@@ -568,18 +606,19 @@ redis-cli LRANGE metricix_dlq 0 -1
 redis-cli LLEN metricix_dlq
 ```
 
-> **DLQ Replay:** Automated replay is a post-MVP feature. To recover: diagnose and resolve the DB connectivity issue, then manually re-queue events from `metricix_dlq` back into `metricix_events_queue`.
+> **DLQ Replay:** Automated replay is a post-MVP feature. To recover: diagnose and resolve the DB connectivity issue,
+> then manually re-queue events from `metricix_dlq` back into `metricix_events_queue`.
 
 ---
 
 ## 📁 Documentation
 
-| File | Description |
-|---|---|
-| [`docs/PRD.md`](docs/PRD.md) | Full product requirements, data schema, and API specification |
-| [`docs/FR.md`](docs/FR.md) | Detailed functional requirements |
+| File                         | Description                                                        |
+|------------------------------|--------------------------------------------------------------------|
+| [`docs/PRD.md`](docs/PRD.md) | Full product requirements, data schema, and API specification      |
+| [`docs/FR.md`](docs/FR.md)   | Detailed functional requirements                                   |
 | [`docs/NFR.md`](docs/NFR.md) | Non-functional requirements (performance, scalability, operations) |
-| [`docs/MVP.md`](docs/MVP.md) | MVP scope definition, exit criteria, and deferred features |
+| [`docs/MVP.md`](docs/MVP.md) | MVP scope definition, exit criteria, and deferred features         |
 
 ---
 
@@ -597,7 +636,8 @@ The following are explicitly **out of scope for the current MVP**:
 
 ## 🤝 Contributing
 
-Contributions are welcome. Please open an issue first to discuss significant changes. Ensure all PRs include tests and pass the existing suite before requesting review.
+Contributions are welcome. Please open an issue first to discuss significant changes. Ensure all PRs include tests and
+pass the existing suite before requesting review.
 
 ---
 

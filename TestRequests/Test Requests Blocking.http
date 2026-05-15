@@ -1,0 +1,73 @@
+### ======================================
+### Base Variables
+### ======================================
+@host = http://localhost:8080
+@apiKey = mtx_pub_test123
+@invalidApiKey = invalid_key
+@contentType = application/json
+
+### ======================================
+### 1. Track Event (SUCCESS - BLOCKING)
+### ======================================
+POST {{host}}/api/blocking/track
+Content-Type: {{contentType}}
+X-API-Key: {{apiKey}}
+
+{
+  "event_type": "button_click",
+  "url": null,
+  "payload": {
+    "button_id": "signup_hero",
+    "path": "/home"
+  }
+}
+
+
+### ======================================
+### 2. Get Events (SUCCESS - BLOCKING)
+### ======================================
+GET {{host}}/api/blocking/events?limit=10
+Accept: {{contentType}}
+X-API-Key: {{apiKey}}
+
+
+### ======================================
+### 3. Get Events (DEFAULT LIMIT - BLOCKING)
+### ======================================
+GET {{host}}/api/blocking/events
+Accept: {{contentType}}
+X-API-Key: {{apiKey}}
+
+
+### ======================================
+### 4. Get Tenants (SUCCESS - BLOCKING)
+### ======================================
+GET {{host}}/api/blocking/tenants
+Accept: {{contentType}}
+
+
+### ======================================
+### 5. Purge Data (SUCCESS - BLOCKING)
+### ======================================
+DELETE {{host}}/api/blocking/purge
+Accept: {{contentType}}
+X-API-Key: {{apiKey}
+
+
+### ======================================
+### 6. Track Event (INVALID API KEY - BLOCKING)
+### ======================================
+POST {{host}}/api/blocking/track
+Content-Type: {{contentType}}
+X-API-Key: {{invalidApiKey}}
+
+{
+  "event_type": "test_event"
+}
+
+
+### ======================================
+### 7. Get Events (MISSING API KEY - BLOCKING)
+### ======================================
+GET {{host}}/api/blocking/events
+Accept: {{contentType}}
