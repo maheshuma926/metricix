@@ -3,7 +3,7 @@ package com.metricix.engine.service.impl;
 import com.metricix.engine.dto.TelemetryEventRequest;
 import com.metricix.engine.entity.TelemetryEvent;
 import com.metricix.engine.mapper.TelemetryEventMapper;
-import com.metricix.engine.repository.TelemetryEventRepository;
+import com.metricix.engine.service.TelemetryAsyncService;
 import com.metricix.engine.service.TelemetryIngestionServiceBlocking;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Profile;
@@ -14,18 +14,21 @@ import org.springframework.stereotype.Service;
 @Service
 public class TelemetryIngestionServiceBlockingImpl implements TelemetryIngestionServiceBlocking {
 
-    private final TelemetryEventRepository repository;
+    private final TelemetryAsyncService asyncService;
     private final TelemetryEventMapper mapper;
 
-    public TelemetryIngestionServiceBlockingImpl(TelemetryEventRepository repository, TelemetryEventMapper mapper) {
-        this.repository = repository;
+    public TelemetryIngestionServiceBlockingImpl(TelemetryAsyncService asyncService, TelemetryEventMapper mapper) {
+        this.asyncService = asyncService;
         this.mapper = mapper;
     }
 
     @Override
     public void bufferEvent(String apiKey, TelemetryEventRequest request) {
         TelemetryEvent entity = mapper.mapToEntity(apiKey, request);
-        repository.save(entity);
+
+        // ✅ async call
+        asyncService.saveEventAsync(entity);
+
         log.debug("Event saved for tenant {}", apiKey);
     }
 
