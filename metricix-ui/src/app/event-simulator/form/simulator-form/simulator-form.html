@@ -1,0 +1,43 @@
+<form (ngSubmit)="submit()">
+
+  <!-- API KEY -->
+  <div class="mb-3">
+    <label class="form-label">X-API-Key</label>
+    <select [(ngModel)]="apiKey" class="form-select" name="apiKey">
+      <option value="mtx_pub_test_123">mtx_pub_test_123</option>
+      <option value="mtx_pub_prod_999">mtx_pub_prod_999</option>
+    </select>
+  </div>
+
+  <!-- EVENT TYPE -->
+  <div class="mb-3">
+    <label class="form-label">Event Type</label>
+    <select [(ngModel)]="eventType" class="form-select" name="eventType">
+      <option value="button_click">button_click</option>
+      <option value="page_view">page_view</option>
+      <option value="form_submit">form_submit</option>
+    </select>
+  </div>
+
+  <!-- PAYLOAD -->
+  <div class="mb-3">
+    <div class="d-flex justify-content-between align-items-center">
+      <label class="form-label">Payload (JSON)</label>
+      <button (click)="formatJson()"
+              class="btn btn-link p-0"
+              type="button">
+        Format JSON
+      </button>
+    </div>
+
+    <textarea [(ngModel)]="payloadText"
+              class="form-control"
+              name="payload"
+              rows="6">
+    </textarea>
+  </div>
+
+  <!-- SUBMIT -->
+  <button class="btn btn-primary w-100" type="submit">Send Event</button>
+
+</form>

@@ -1,0 +1,34 @@
+<!-- LINE -->
+<div class="log-line">
+
+  <span class="timestamp">
+    [{{ log.timestamp }}]
+  </span>
+
+  @if (log.type === 'request') {
+    <span class="request">
+      &gt; {{ log.method }} {{ log.apiUrl }}
+    </span>
+  }
+
+  @if (log.type === 'response') {
+    <span class="response">
+      &lt; {{ log.status }} Accepted
+    </span>
+  }
+
+  @if (log.type === 'error') {
+    <span class="error">
+      ❌ {{ log.message }}
+    </span>
+  }
+
+</div>
+
+<!-- JSON -->
+@if (log.payload) {
+  <div class="json-block">
+    <pre>{{ log.payload | json }}</pre>
+  </div>
+}
+

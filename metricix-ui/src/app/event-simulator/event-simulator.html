@@ -1,0 +1,43 @@
+<div class="container-fluid mt-4">
+
+  <div class="row g-4 align-items-stretch">
+
+    <!-- ✅ LEFT: FORM -->
+    <div class="col-12 col-lg-6 d-flex">
+
+      <div class="card shadow-sm w-100">
+        <div class="card-body">
+          <simulator-form
+            (sendEvent)="handleEventSent($event)"
+          ></simulator-form>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ✅ RIGHT: LIVE CONSOLE -->
+    <div class="col-12 col-lg-6 d-flex">
+      <div class="card shadow-sm w-100 bg-dark text-light">
+        <div class="console-header d-flex align-items-center">
+
+          <div class="d-flex gap-2">
+            <span class="dot bg-danger"></span>
+            <span class="dot bg-warning"></span>
+            <span class="dot bg-success"></span>
+          </div>
+
+          <div class="console-title text-center flex-grow-1">
+            Live Console Log
+          </div>
+
+          <button (click)="clearLogs()" class="btn btn-sm text-light border-0 bg-transparen">Clear</button>
+
+        </div>
+
+        <div class="card-body overflow-auto" style="min-height: 500px;">
+          <live-console [logs]="logs"></live-console>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
