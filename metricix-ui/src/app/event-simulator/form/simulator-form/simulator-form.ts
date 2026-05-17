@@ -21,7 +21,6 @@ export class SimulatorFormComponent {
 
   submit() {
     let payload;
-
     try {
       payload = JSON.parse(this.payloadText);
     } catch {

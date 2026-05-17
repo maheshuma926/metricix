@@ -1,16 +1,56 @@
+/* line */
 .log-line {
   margin-bottom: 6px;
+  font-size: 13px;
 }
 
-.json-block {
-  background: #111827;
-  border: 1px solid #2a2f3a;
-  border-radius: 6px;
+/* timestamp */
+.timestamp {
+  color: #6b7280;
+  margin-right: 6px;
+}
 
+/* request */
+.request {
+  color: #60a5fa;
+}
+
+/* response (green) */
+.response {
+  color: #22c55e;
+}
+
+/* error (red) */
+.error {
+  color: #f87171;
+}
+
+/* box (shared) */
+.log-box {
+  border-radius: 8px;
   padding: 10px;
-  margin-bottom: 14px; /* ✅ IMPORTANT spacing */
+  margin: 8px 0 14px;
+
+  font-family: monospace;
+  font-size: 13px;
+
+  border: 1px solid;
+  background: #111827;
 }
 
+/* ✅ GREEN BOX */
+.log-success {
+  border-color: #22c55e40; /* soft green */
+  color: #bbf7d0;
+}
+
+/* ✅ RED BOX */
+.log-error {
+  border-color: #f8717140; /* soft red */
+  color: #fecaca;
+}
+
+/* json */
 pre {
   margin: 0;
   white-space: pre-wrap;

@@ -1,23 +1,15 @@
+/* HEADER */
 .console-header {
+  position: relative;
+  padding: 10px 14px;
+  border-bottom: 1px solid #2a2f3a;
+
   display: flex;
   align-items: center;
   justify-content: space-between;
-
-  padding: 10px 14px;
-  border-bottom: 1px solid #333;
-
-  background: linear-gradient(to right, #0f172a, #111827);
-  border-top-left-radius: 10px;
-  border-top-right-radius: 10px;
 }
 
-/* Dots container */
-.dots {
-  display: flex;
-  gap: 6px;
-}
-
-/* Individual dots */
+/* DOTS */
 .dot {
   width: 10px;
   height: 10px;
@@ -25,43 +17,7 @@
   display: inline-block;
 }
 
-/* Colors */
-.red {
-  background: #ff5f56;
-}
-
-.yellow {
-  background: #ffbd2e;
-}
-
-.green {
-  background: #27c93f;
-}
-
-/* Title center */
-.title {
-  position: absolute;
-  left: 50%;
-  transform: translateX(-50%);
-  font-size: 13px;
-  color: #cbd5f5;
-}
-
-.console-header {
-  padding: 10px 14px;
-  background: linear-gradient(to right, #0f172a, #111827);
-  border-bottom: 1px solid #333;
-  position: relative;
-}
-
-/* Dots */
-.dot {
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-}
-
-/* Title perfectly centered */
+/* CENTER TITLE */
 .console-title {
   position: absolute;
   left: 50%;
@@ -69,11 +25,4 @@
   font-size: 13px;
   font-family: monospace;
   color: #cbd5f5;
-}
-
-.dot {
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  display: inline-block;
 }

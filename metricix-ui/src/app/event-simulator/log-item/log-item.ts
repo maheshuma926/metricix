@@ -1,13 +1,15 @@
 import {Component, Input} from '@angular/core';
-import {JsonPipe} from '@angular/common';
+import {JsonPipe, NgClass} from '@angular/common';
 
 @Component({
   selector: 'log-item',
   standalone: true,
   imports: [
-    JsonPipe
+    JsonPipe,
+    NgClass
   ],
-  templateUrl: './log-item.html'
+  templateUrl: './log-item.html',
+  styleUrls: ['./log-item.css']
 })
 export class LogItemComponent {
 

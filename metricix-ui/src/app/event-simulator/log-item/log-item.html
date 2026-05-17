@@ -1,4 +1,4 @@
-<!-- LINE -->
+<!-- HEADER LINE -->
 <div class="log-line">
 
   <span class="timestamp">
@@ -19,16 +19,24 @@
 
   @if (log.type === 'error') {
     <span class="error">
-      ❌ {{ log.message }}
+      &lt; Network Error or CORS Issue
     </span>
   }
 
 </div>
 
-<!-- JSON -->
+<!-- MESSAGE BOX -->
 @if (log.payload) {
-  <div class="json-block">
-    <pre>{{ log.payload | json }}</pre>
+  <div
+    [ngClass]="{
+      'log-success': log.type === 'response',
+      'log-error': log.type === 'error'
+    }"
+    class="log-box">
+
+    <pre>
+{{ log.payload | json }}
+    </pre>
+
   </div>
 }
-
